@@ -1,0 +1,26 @@
+name: Publish DREAM STREAMZ Neon Home APK
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-neon-home.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download successful neon home APK
+        env:
+          TRANSFER_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-1d3c-81f5-a7f6-4ad508ee5c93/raw?se=2026-11-21T17%3A02%3A39Z&sp=r&sv=2026-06-06&sr=b&scid=492e2a97-ae52-566f-9538-c564235c5ee1&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-21T14%3A41%3A41Z&ske=2026-11-22T14%3A41%3A41Z&sks=b&skv=2026-06-06&sig=FL2uz1XFxDhLnL8OPoFZWp9jZVBIPcSJj4o%2B1HVCCbE%3D'
+        run: |
+          curl -fL --retry 3 --silent --show-error "$TRANSFER_URL" -o /tmp/dream-streamz.zip
+          unzip -o -j /tmp/dream-streamz.zip app-debug.apk -d /tmp
+          test -s /tmp/app-debug.apk
+          cp /tmp/app-debug.apk app-debug.apk
+      - name: Publish new APK
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-debug.apk
+          git diff --cached --quiet || (git commit -m "Publish DREAM STREAMZ neon home menu APK" && git push origin HEAD:main)
