@@ -1,0 +1,26 @@
+name: Publish DREAM STREAMZ VOD and Series APK
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-vod-series.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get successful DREAM STREAMZ VOD and Series build
+        env:
+          TRANSFER_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-1590-81f5-9af1-1f402328a009/raw?se=2026-11-21T17%3A10%3A48Z&sp=r&sv=2026-06-06&sr=b&scid=58df92ac-e650-5ba5-9d2d-f9a4cd635416&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-21T13%3A02%3A48Z&ske=2026-11-22T13%3A02%3A48Z&sks=b&skv=2026-06-06&sig=HqR9IpOQfhyGBZCtCbBpfp6JeSqgIgnI8VeF7tJz64I%3D'
+        run: |
+          curl -fL --retry 3 --silent --show-error "$TRANSFER_URL" -o /tmp/dream-streamz.zip
+          unzip -o -j /tmp/dream-streamz.zip app-debug.apk -d /tmp
+          test -s /tmp/app-debug.apk
+          cp /tmp/app-debug.apk app-debug.apk
+      - name: Publish updated APK
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-debug.apk
+          git diff --cached --quiet || (git commit -m "Publish DREAM STREAMZ poster-style VOD and Series" && git push origin HEAD:main)
