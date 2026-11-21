@@ -1,0 +1,29 @@
+name: Publish latest DREAM STREAMZ APK
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-dream-streamz.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download approved successful APK build
+        env:
+          ARTIFACT_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-b36c-81f5-a232-27f89626b12e/raw?se=2026-11-21T16%3A14%3A38Z&sp=r&sv=2026-06-06&sr=b&scid=604ed1f8-e5c9-5c4f-8b78-aece4ac520a1&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-21T12%3A32%3A44Z&ske=2026-11-22T12%3A32%3A44Z&sks=b&skv=2026-06-06&sig=dqJK0LSstPYMtd4T9ehUZ4oGdUxVp3uF8Df9NxhdBGw%3D'
+        run: |
+          curl -fL --retry 3 --silent --show-error "$ARTIFACT_URL" -o /tmp/dream-streamz-build.zip
+          unzip -o -j /tmp/dream-streamz-build.zip 'app-debug.apk' -d /tmp
+          test -s /tmp/app-debug.apk
+          cp /tmp/app-debug.apk app-debug.apk
+      - name: Publish APK without disclosing source code
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-debug.apk
+          git diff --cached --quiet || (git commit -m "Publish DREAM STREAMZ latest verified APK" && git push origin HEAD:main)
